@@ -1,0 +1,13 @@
+{
+  "name": "washly",
+  "private": true,
+  "workspaces": [
+    "mobile",
+    "admin",
+    "shared"
+  ],
+  "overrides": {
+    "react": "19.2.3",
+    "react-dom": "19.2.3"
+  }
+}

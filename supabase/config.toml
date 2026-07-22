@@ -256,7 +256,7 @@ otp_expiry = 3600
 
 [auth.sms]
 # Allow/disallow new user signups via SMS to your project.
-enable_signup = false
+enable_signup = true
 # If enabled, users need to confirm their phone number before signing in.
 enable_confirmations = false
 # Template for sending OTP to users
@@ -265,8 +265,14 @@ template = "Your code is {{ `{{ .Code }}` }}"
 max_frequency = "5s"
 
 # Use pre-defined map of phone number to OTP for testing.
-# [auth.sms.test_otp]
-# 4152127777 = "123456"
+# No real SMS provider is configured locally, so this is the only way to
+# exercise the OTP flow in local dev (story 1.1). Confirmed via a direct
+# curl against /auth/v1/otp + /auth/v1/verify: the E.164 form ("+91...")
+# is what the client must send, and it's what matches here -- the app's
+# signInWithOtp/verifyOtp calls should pass phone numbers in E.164.
+[auth.sms.test_otp]
+9999999999 = "123456"
+"+919999999999" = "123456"
 
 # Configure logged in session timeouts.
 # [auth.sessions]
@@ -286,10 +292,14 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
+# GoTrue requires a provider block enabled to turn phone auth on at all, even
+# though the fake credentials below are never actually used -- every number
+# exercised in local dev is one of the auth.sms.test_otp entries above, which
+# short-circuits before any real provider call is made.
 [auth.sms.twilio]
-enabled = false
-account_sid = ""
-message_service_sid = ""
+enabled = true
+account_sid = "AC00000000000000000000000000000000"
+message_service_sid = "MG00000000000000000000000000000000"
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
 auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
