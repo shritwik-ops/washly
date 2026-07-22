@@ -296,14 +296,24 @@ max_frequency = "5s"
 # uri = "pg-functions://<database>/<schema>/<hook_name>"
 
 # Configure one of the supported SMS providers: `twilio`, `twilio_verify`, `messagebird`, `textlocal`, `vonage`.
-# GoTrue requires a provider block enabled to turn phone auth on at all, even
-# though the fake credentials below are never actually used -- every number
-# exercised in local dev is one of the auth.sms.test_otp entries above, which
-# short-circuits before any real provider call is made.
+# These are REAL Twilio TRIAL credentials (not production) -- wired up so a
+# number NOT in auth.sms.test_otp above falls through to genuine Twilio SMS
+# delivery, for end-to-end testing. A trial account can only actually
+# deliver to phone numbers verified in the Twilio console; any other
+# number gets a real Twilio rejection rather than silent fake-credential
+# failure. Numbers in auth.sms.test_otp above still short-circuit before
+# any Twilio call is made, so the 123456 bypass keeps working unchanged.
 [auth.sms.twilio]
 enabled = true
-account_sid = "AC00000000000000000000000000000000"
-message_service_sid = "MG00000000000000000000000000000000"
+# Account SID is also a live credential (GitHub push protection flags it as
+# one, correctly) -- not just the auth token -- so it gets the same
+# env() substitution treatment instead of sitting in this tracked file.
+account_sid = "env(SUPABASE_AUTH_SMS_TWILIO_ACCOUNT_SID)"
+# Despite the field name, GoTrue sends this value straight through as
+# Twilio's `From` sender for plain SMS (not as a Messaging Service SID) --
+# confirmed against GoTrue's twilio provider source. A single Twilio phone
+# number (not a Messaging Service) goes here directly.
+message_service_sid = "+19382016819"
 # DO NOT commit your Twilio auth token to git. Use environment variable substitution instead:
 auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 
