@@ -284,6 +284,7 @@ export type Database = {
       }
       machines: {
         Row: {
+          busy_until: string | null
           created_at: string
           hostel_id: string
           id: string
@@ -293,6 +294,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          busy_until?: string | null
           created_at?: string
           hostel_id: string
           id?: string
@@ -302,6 +304,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          busy_until?: string | null
           created_at?: string
           hostel_id?: string
           id?: string
@@ -487,7 +490,88 @@ export type Database = {
     }
     Functions: {
       admin_college_id: { Args: never; Returns: string }
+      claim_flash_slot: {
+        Args: { p_flash_slot_id: string }
+        Returns: {
+          booking_fee: number
+          booking_type: string
+          created_at: string
+          expired_at: string | null
+          fee_applied_to_wash: boolean
+          id: string
+          machine_id: string
+          no_show: boolean
+          slot_end: string
+          slot_start: string
+          start_deadline: string
+          started_at: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_booking: {
+        Args: { p_machine_id: string; p_slot_start: string }
+        Returns: {
+          booking_fee: number
+          booking_type: string
+          created_at: string
+          expired_at: string | null
+          fee_applied_to_wash: boolean
+          id: string
+          machine_id: string
+          no_show: boolean
+          slot_end: string
+          slot_start: string
+          start_deadline: string
+          started_at: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      expire_overdue_bookings: { Args: never; Returns: undefined }
       is_super_admin: { Args: never; Returns: boolean }
+      revert_expired_flash_slots: { Args: never; Returns: undefined }
+      run_booking_scheduler: { Args: never; Returns: undefined }
+      start_booking: {
+        Args: { p_booking_id: string }
+        Returns: {
+          booking_fee: number
+          booking_type: string
+          created_at: string
+          expired_at: string | null
+          fee_applied_to_wash: boolean
+          id: string
+          machine_id: string
+          no_show: boolean
+          slot_end: string
+          slot_start: string
+          start_deadline: string
+          started_at: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
     }
     Enums: {
       [_ in never]: never
