@@ -42,11 +42,12 @@ export default function Home() {
 
   if (!student) return null; // guarded by (app)/_layout.tsx
 
-  async function handleStartWash() {
+  function handleStartWash() {
     if (!myBooking) return;
-    setActionError(null);
-    const { error } = await supabase.rpc('start_booking', { p_booking_id: myBooking.id });
-    if (error) setActionError(error.message);
+    router.push({
+      pathname: '/(app)/checklist',
+      params: { mode: 'booking', bookingId: myBooking.id, machineLabel: myBookingMachine?.label },
+    });
   }
 
   async function handleClaimFlash(flashSlotId: string) {
@@ -55,14 +56,30 @@ export default function Home() {
     if (error) setActionError(error.message);
   }
 
-  function handleMachinePress(machine: Machine) {
-    if (machine.status !== 'free') return;
+  // Shared guard for both free-machine actions: the "one booking at a
+  // time" rule is enforced server-side too (create_booking/
+  // start_instant_wash), this just gives the same friendly message before
+  // even making the request.
+  function ensureNoActiveBooking(): boolean {
     if (myBooking) {
-      setActionError('You already have a booking -- finish or wait it out before booking another machine.');
-      return;
+      setActionError('You already have a booking -- finish or wait it out before starting another one.');
+      return false;
     }
     setActionError(null);
+    return true;
+  }
+
+  function handleBookSlot(machine: Machine) {
+    if (machine.status !== 'free' || !ensureNoActiveBooking()) return;
     router.push({ pathname: '/(app)/book', params: { machineId: machine.id, machineLabel: machine.label } });
+  }
+
+  function handleWashNow(machine: Machine) {
+    if (machine.status !== 'free' || !ensureNoActiveBooking()) return;
+    router.push({
+      pathname: '/(app)/checklist',
+      params: { mode: 'instant', machineId: machine.id, machineLabel: machine.label },
+    });
   }
 
   return (
@@ -158,25 +175,43 @@ export default function Home() {
         </Body>
       ) : (
         machines.map((machine) => {
-          const isBookable = machine.status === 'free';
+          const isFree = machine.status === 'free';
           const busyMsLeft = machine.busy_until ? new Date(machine.busy_until).getTime() - now : null;
           const statusInfo = MACHINE_STATUS[machine.status] ?? { label: machine.status, tone: 'neutral' as PillTone };
+
+          // A free machine offers two first-class actions inline -- slot
+          // booking isn't the only path. Occupied/maintenance machines stay
+          // a plain, non-interactive row exactly as before.
+          if (!isFree) {
+            return (
+              <View key={machine.id} style={[styles.machineRow, styles.machineRowDisabled]}>
+                <Text style={styles.machineLabel}>{machine.label}</Text>
+                <View style={styles.machineStatusGroup}>
+                  {machine.status === 'in_use' && busyMsLeft && busyMsLeft > 0 ? (
+                    <Text style={styles.machineCountdown}>{formatCountdown(busyMsLeft)} left</Text>
+                  ) : null}
+                  <StatusPill label={statusInfo.label} tone={statusInfo.tone} />
+                </View>
+              </View>
+            );
+          }
+
           return (
-            <TouchableOpacity
-              key={machine.id}
-              style={[styles.machineRow, !isBookable && styles.machineRowDisabled]}
-              onPress={() => handleMachinePress(machine)}
-              disabled={!isBookable}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.machineLabel}>{machine.label}</Text>
-              <View style={styles.machineStatusGroup}>
-                {machine.status === 'in_use' && busyMsLeft && busyMsLeft > 0 ? (
-                  <Text style={styles.machineCountdown}>{formatCountdown(busyMsLeft)} left</Text>
-                ) : null}
+            <View key={machine.id} style={styles.machineCardFree}>
+              <View style={styles.rowBetween}>
+                <Text style={styles.machineLabel}>{machine.label}</Text>
                 <StatusPill label={statusInfo.label} tone={statusInfo.tone} />
               </View>
-            </TouchableOpacity>
+              <View style={styles.machineActionsRow}>
+                <Button label="Wash now" onPress={() => handleWashNow(machine)} style={styles.machineActionButton} />
+                <Button
+                  label="Book a slot"
+                  variant="secondary"
+                  onPress={() => handleBookSlot(machine)}
+                  style={styles.machineActionButton}
+                />
+              </View>
+            </View>
           );
         })
       )}
@@ -266,6 +301,22 @@ const styles = StyleSheet.create({
     fontFamily: fonts.bodyMedium,
     fontSize: 12,
     color: colors.inkMuted,
+  },
+  machineCardFree: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.md,
+    padding: spacing.lg,
+    marginBottom: 10,
+  },
+  machineActionsRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 14,
+  },
+  machineActionButton: {
+    flex: 1,
   },
   signOut: {
     marginTop: 24,

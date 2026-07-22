@@ -5,3 +5,4 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { TextField } from './TextField';
 export { StatusPill, type PillTone } from './StatusPill';
+export { Checkbox } from './Checkbox';

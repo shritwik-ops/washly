@@ -366,6 +366,7 @@ export type Database = {
           id_verification_status: string
           no_show_count: number
           phone: string
+          prewash_checklist_count: number
           roll_number: string | null
           updated_at: string
         }
@@ -381,6 +382,7 @@ export type Database = {
           id_verification_status?: string
           no_show_count?: number
           phone: string
+          prewash_checklist_count?: number
           roll_number?: string | null
           updated_at?: string
         }
@@ -396,6 +398,7 @@ export type Database = {
           id_verification_status?: string
           no_show_count?: number
           phone?: string
+          prewash_checklist_count?: number
           roll_number?: string | null
           updated_at?: string
         }
@@ -548,6 +551,32 @@ export type Database = {
       run_booking_scheduler: { Args: never; Returns: undefined }
       start_booking: {
         Args: { p_booking_id: string }
+        Returns: {
+          booking_fee: number
+          booking_type: string
+          created_at: string
+          expired_at: string | null
+          fee_applied_to_wash: boolean
+          id: string
+          machine_id: string
+          no_show: boolean
+          slot_end: string
+          slot_start: string
+          start_deadline: string
+          started_at: string | null
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      start_instant_wash: {
+        Args: { p_machine_id: string }
         Returns: {
           booking_fee: number
           booking_type: string
