@@ -1,17 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Redirect, useRouter } from 'expo-router';
 import type { Database } from '@washly/shared';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { Screen, Heading, Body, Label, ErrorText, Button, TextField } from '../../components/ui';
+import { colors, fonts, radii, spacing } from '../../constants/theme';
 
 type College = Database['public']['Tables']['colleges']['Row'];
 type Hostel = Database['public']['Tables']['hostels']['Row'];
@@ -117,177 +111,157 @@ export default function CollegePicker() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tell us about yourself</Text>
+    <Screen>
+      <Heading size="xl" style={{ marginBottom: 24 }}>
+        Tell us about yourself
+      </Heading>
 
-      <TextInput
-        style={styles.textInput}
+      <TextField
         value={fullName}
         onChangeText={setFullName}
         placeholder="Full name (optional)"
+        containerStyle={{ marginBottom: 8 }}
       />
 
-      <Text style={styles.label}>College</Text>
-      <TextInput
-        style={styles.textInput}
+      <Label style={styles.sectionLabel}>College</Label>
+      <TextField
         value={collegeFilter}
         onChangeText={setCollegeFilter}
         placeholder="Search for your college"
+        containerStyle={{ marginBottom: 10 }}
       />
       {collegesLoading ? (
-        <ActivityIndicator style={styles.spinner} />
+        <ActivityIndicator style={styles.spinner} color={colors.appBlue} />
       ) : (
-        <FlatList
-          style={styles.list}
-          data={filteredColleges}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              style={[styles.row, selectedCollege?.id === item.id && styles.rowSelected]}
-              onPress={() => setSelectedCollege(item)}
-            >
-              <Text style={styles.rowTitle}>{item.name}</Text>
-              {item.city ? <Text style={styles.rowSubtitle}>{item.city}</Text> : null}
-            </TouchableOpacity>
-          )}
-          ListEmptyComponent={<Text style={styles.empty}>No colleges match your search.</Text>}
-        />
+        <View style={styles.listCard}>
+          <FlatList
+            style={styles.list}
+            data={filteredColleges}
+            keyExtractor={(item) => item.id}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                style={[styles.row, selectedCollege?.id === item.id && styles.rowSelected]}
+                onPress={() => setSelectedCollege(item)}
+              >
+                <Text
+                  style={[styles.rowTitle, selectedCollege?.id === item.id && styles.rowTitleSelected]}
+                >
+                  {item.name}
+                </Text>
+                {item.city ? <Text style={styles.rowSubtitle}>{item.city}</Text> : null}
+              </TouchableOpacity>
+            )}
+            ListEmptyComponent={<Text style={styles.empty}>No colleges match your search.</Text>}
+          />
+        </View>
       )}
 
-      <TouchableOpacity
-        style={styles.linkRow}
+      <Button
+        label="My college isn't listed"
+        variant="ghost"
         onPress={() => router.push('/(onboarding)/college-not-listed')}
-      >
-        <Text style={styles.link}>My college isn't listed</Text>
-      </TouchableOpacity>
+        style={styles.linkButton}
+      />
 
       {selectedCollege ? (
         <>
-          <Text style={styles.label}>Hostel</Text>
-          <TextInput
-            style={styles.textInput}
+          <Label style={styles.sectionLabel}>Hostel</Label>
+          <TextField
             value={hostelFilter}
             onChangeText={setHostelFilter}
             placeholder="Search for your hostel"
+            containerStyle={{ marginBottom: 10 }}
           />
           {hostelsLoading ? (
-            <ActivityIndicator style={styles.spinner} />
+            <ActivityIndicator style={styles.spinner} color={colors.appBlue} />
           ) : (
-            <FlatList
-              style={styles.list}
-              data={filteredHostels}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.row, selectedHostel?.id === item.id && styles.rowSelected]}
-                  onPress={() => setSelectedHostel(item)}
-                >
-                  <Text style={styles.rowTitle}>{item.name}</Text>
-                </TouchableOpacity>
-              )}
-              ListEmptyComponent={<Text style={styles.empty}>No hostels match your search.</Text>}
-            />
+            <View style={styles.listCard}>
+              <FlatList
+                style={styles.list}
+                data={filteredHostels}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.row, selectedHostel?.id === item.id && styles.rowSelected]}
+                    onPress={() => setSelectedHostel(item)}
+                  >
+                    <Text
+                      style={[styles.rowTitle, selectedHostel?.id === item.id && styles.rowTitleSelected]}
+                    >
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                ListEmptyComponent={<Text style={styles.empty}>No hostels match your search.</Text>}
+              />
+            </View>
           )}
         </>
       ) : null}
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <ErrorText style={{ marginTop: 4, marginBottom: 4 }}>{error}</ErrorText> : null}
 
-      <TouchableOpacity
-        style={[styles.button, !canSubmit && styles.buttonDisabled]}
+      <Button
+        label="Continue"
         onPress={handleContinue}
         disabled={!canSubmit}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Continue</Text>
-        )}
-      </TouchableOpacity>
-    </View>
+        loading={submitting}
+        style={{ marginTop: 24 }}
+      />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-    marginTop: 16,
-    marginBottom: 6,
-  },
-  textInput: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
+  sectionLabel: {
+    marginTop: 20,
+    marginBottom: 10,
   },
   spinner: {
     marginVertical: 12,
   },
+  listCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
   list: {
-    maxHeight: 160,
-    marginTop: 8,
+    maxHeight: 168,
   },
   row: {
-    paddingVertical: 12,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: spacing.lg,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.border,
   },
   rowSelected: {
-    backgroundColor: '#e8f0fe',
+    backgroundColor: colors.appBlueTint,
   },
   rowTitle: {
+    fontFamily: fonts.bodyMedium,
     fontSize: 15,
-    fontWeight: '500',
+    color: colors.ink,
+  },
+  rowTitleSelected: {
+    color: colors.appBlue,
+    fontFamily: fonts.bodySemiBold,
   },
   rowSubtitle: {
+    fontFamily: fonts.body,
     fontSize: 13,
-    color: '#888',
+    color: colors.inkMuted,
+    marginTop: 2,
   },
   empty: {
-    padding: 12,
-    color: '#888',
+    fontFamily: fonts.body,
+    padding: spacing.lg,
+    color: colors.inkMuted,
   },
-  linkRow: {
-    marginTop: 10,
-  },
-  link: {
-    color: '#1a73e8',
-    fontSize: 14,
-  },
-  error: {
-    color: '#c0392b',
-    marginTop: 12,
-  },
-  button: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 24,
-    marginBottom: 40,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  linkButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+    marginTop: 4,
   },
 });

@@ -1,16 +1,7 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
+import { Screen, Brandmark, Heading, Body, ErrorText, Button, TextField } from '../../components/ui';
 
 export default function VerifyOtp() {
   const router = useRouter();
@@ -51,94 +42,37 @@ export default function VerifyOtp() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <Text style={styles.title}>Enter the code</Text>
-      <Text style={styles.subtitle}>We sent a 6-digit code to {phone}</Text>
+    <Screen center>
+      <Brandmark />
+      <Heading size="xl" style={{ marginBottom: 8 }}>
+        Enter the code
+      </Heading>
+      <Body muted style={{ marginBottom: 32 }}>
+        We sent a 6-digit code to {phone}
+      </Body>
 
-      <TextInput
-        style={styles.input}
+      <TextField
         value={code}
         onChangeText={(text) => setCode(text.replace(/\D/g, '').slice(0, 6))}
         placeholder="123456"
         keyboardType="number-pad"
         maxLength={6}
         autoFocus
+        style={{ fontSize: 22, letterSpacing: 6 }}
+        containerStyle={{ marginBottom: 16 }}
       />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <ErrorText style={{ marginBottom: 16 }}>{error}</ErrorText> : null}
 
-      <TouchableOpacity
-        style={[styles.button, !canSubmit && styles.buttonDisabled]}
-        onPress={handleVerify}
-        disabled={!canSubmit}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Verify</Text>
-        )}
-      </TouchableOpacity>
+      <Button label="Verify" onPress={handleVerify} disabled={!canSubmit} loading={submitting} />
 
-      <TouchableOpacity style={styles.resend} onPress={handleResend} disabled={resending}>
-        <Text style={styles.resendText}>{resending ? 'Resending…' : "Didn't get a code? Resend"}</Text>
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+      <Button
+        label={resending ? 'Resending…' : "Didn't get a code? Resend"}
+        onPress={handleResend}
+        variant="ghost"
+        disabled={resending}
+        style={{ marginTop: 8 }}
+      />
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginBottom: 32,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 14,
-    fontSize: 20,
-    letterSpacing: 4,
-    marginBottom: 12,
-  },
-  error: {
-    color: '#c0392b',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  resend: {
-    marginTop: 20,
-    alignItems: 'center',
-  },
-  resendText: {
-    color: '#1a73e8',
-    fontSize: 14,
-  },
-});

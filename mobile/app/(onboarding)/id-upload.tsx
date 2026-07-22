@@ -1,17 +1,12 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { decode } from 'base64-arraybuffer';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { Screen, Heading, Body, ErrorText, Button } from '../../components/ui';
+import { colors, fonts, radii } from '../../constants/theme';
 
 export default function IdUpload() {
   const router = useRouter();
@@ -89,109 +84,84 @@ export default function IdUpload() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Upload your college ID</Text>
-      <Text style={styles.subtitle}>
+    <Screen>
+      <Heading size="xl" style={{ marginBottom: 8 }}>
+        Upload your college ID
+      </Heading>
+      <Body muted style={{ marginBottom: 24 }}>
         This helps us confirm you're a real student. Your college admin will review it.
-      </Text>
+      </Body>
 
       {previewUri ? (
         <Image source={{ uri: previewUri }} style={styles.preview} />
       ) : (
         <View style={styles.placeholder}>
+          <View style={styles.placeholderIcon}>
+            <Text style={styles.placeholderIconText}>ID</Text>
+          </View>
           <Text style={styles.placeholderText}>No photo selected yet</Text>
         </View>
       )}
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <ErrorText style={{ marginBottom: 12 }}>{error}</ErrorText> : null}
 
-      <TouchableOpacity
-        style={[styles.button, uploading && styles.buttonDisabled]}
+      <Button
+        label="Take Photo"
         onPress={pickFromCamera}
         disabled={uploading}
-      >
-        <Text style={styles.buttonText}>Take Photo</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        style={[styles.button, styles.buttonSecondary, uploading && styles.buttonDisabled]}
+        style={{ marginBottom: 12 }}
+      />
+      <Button
+        label="Choose from Library"
         onPress={pickFromLibrary}
+        variant="secondary"
         disabled={uploading}
-      >
-        <Text style={[styles.buttonText, styles.buttonTextSecondary]}>Choose from Library</Text>
-      </TouchableOpacity>
+      />
 
-      {uploading ? <ActivityIndicator style={styles.spinner} /> : null}
-    </View>
+      {uploading ? <ActivityIndicator style={styles.spinner} color={colors.appBlue} /> : null}
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginBottom: 24,
-  },
   preview: {
     width: '100%',
     height: 220,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     marginBottom: 24,
-    backgroundColor: '#eee',
+    backgroundColor: colors.surfaceMuted,
   },
   placeholder: {
     width: '100%',
     height: 220,
-    borderRadius: 12,
+    borderRadius: radii.lg,
     marginBottom: 24,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: colors.surfaceMuted,
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#ddd',
+    borderWidth: 1.5,
+    borderColor: colors.border,
     borderStyle: 'dashed',
   },
-  placeholderText: {
-    color: '#999',
-  },
-  error: {
-    color: '#c0392b',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 10,
-    paddingVertical: 14,
+  placeholderIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: radii.sm,
+    backgroundColor: colors.appBlueTint,
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 12,
   },
-  buttonSecondary: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: '#1a73e8',
+  placeholderIconText: {
+    fontFamily: fonts.heading,
+    fontSize: 15,
+    color: colors.appBlue,
   },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  buttonTextSecondary: {
-    color: '#1a73e8',
+  placeholderText: {
+    fontFamily: fonts.bodyMedium,
+    color: colors.inkMuted,
   },
   spinner: {
-    marginTop: 12,
+    marginTop: 16,
   },
 });

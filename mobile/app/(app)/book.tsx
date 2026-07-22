@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { BOOKING_LEAD_OPTIONS_MINUTES } from '@washly/shared';
 import { supabase } from '../../lib/supabase';
+import { Screen, Heading, Body, Label, ErrorText, Button, Card } from '../../components/ui';
+import { colors, fonts, radii } from '../../constants/theme';
 
 export default function Book() {
   const router = useRouter();
@@ -47,20 +49,23 @@ export default function Book() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Book {machineLabel ?? 'machine'}</Text>
-      <Text style={styles.subtitle}>
+    <Screen>
+      <Heading size="xl" style={{ marginBottom: 8 }}>
+        Book {machineLabel ?? 'machine'}
+      </Heading>
+      <Body muted style={{ marginBottom: 28 }}>
         Reserve this machine now and it'll be held for you. You'll have 7 minutes from your slot
         start to tap "Start wash" -- miss it and the booking fee is forfeited.
-      </Text>
+      </Body>
 
-      <Text style={styles.label}>Arrive in</Text>
+      <Label style={{ marginBottom: 10 }}>Arrive in</Label>
       <View style={styles.leadRow}>
         {BOOKING_LEAD_OPTIONS_MINUTES.map((minutes) => (
           <TouchableOpacity
             key={minutes}
             style={[styles.leadOption, leadMinutes === minutes && styles.leadOptionSelected]}
             onPress={() => setLeadMinutes(minutes)}
+            activeOpacity={0.85}
           >
             <Text
               style={[styles.leadOptionText, leadMinutes === minutes && styles.leadOptionTextSelected]}
@@ -71,123 +76,58 @@ export default function Book() {
         ))}
       </View>
 
-      <View style={styles.feeCard}>
-        <Text style={styles.feeLabel}>Booking fee</Text>
-        <Text style={styles.feeValue}>
-          {bookingFee === null ? '...' : `₹${bookingFee}`}
-        </Text>
-        <Text style={styles.feeNote}>Adjusted against your wash cost if you start on time.</Text>
-      </View>
+      <Card tint="blue" style={{ marginTop: 24 }}>
+        <Label style={{ color: colors.appBlue, marginBottom: 6 }}>Booking fee</Label>
+        <Text style={styles.feeValue}>{bookingFee === null ? '…' : `₹${bookingFee}`}</Text>
+        <Body muted style={{ marginTop: 8 }}>
+          Adjusted against your wash cost if you start on time.
+        </Body>
+      </Card>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <ErrorText style={{ marginBottom: 12 }}>{error}</ErrorText> : null}
 
-      <TouchableOpacity
-        style={[styles.button, submitting && styles.buttonDisabled]}
-        onPress={handleConfirm}
+      <Button label="Confirm booking" onPress={handleConfirm} loading={submitting} />
+
+      <Button
+        label="Cancel"
+        onPress={() => router.back()}
+        variant="ghost"
         disabled={submitting}
-      >
-        {submitting ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Confirm booking</Text>}
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.cancel} onPress={() => router.back()} disabled={submitting}>
-        <Text style={styles.cancelText}>Cancel</Text>
-      </TouchableOpacity>
-    </View>
+        style={{ marginTop: 4 }}
+      />
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 60,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#666',
-    textTransform: 'uppercase',
-    marginBottom: 10,
-  },
   leadRow: {
     flexDirection: 'row',
     gap: 10,
-    marginBottom: 24,
   },
   leadOption: {
     flex: 1,
-    paddingVertical: 14,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
+    paddingVertical: 16,
+    borderRadius: radii.md,
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
     alignItems: 'center',
   },
   leadOptionSelected: {
-    backgroundColor: '#1a73e8',
-    borderColor: '#1a73e8',
+    backgroundColor: colors.appBlue,
+    borderColor: colors.appBlue,
   },
   leadOptionText: {
+    fontFamily: fonts.bodySemiBold,
     fontSize: 15,
-    fontWeight: '600',
-    color: '#333',
+    color: colors.ink,
   },
   leadOptionTextSelected: {
-    color: '#fff',
-  },
-  feeCard: {
-    backgroundColor: '#f7f7f8',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 24,
-  },
-  feeLabel: {
-    fontSize: 13,
-    color: '#666',
-    marginBottom: 4,
+    color: colors.inkOnBlue,
   },
   feeValue: {
-    fontSize: 28,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  feeNote: {
-    fontSize: 13,
-    color: '#888',
-  },
-  error: {
-    color: '#c0392b',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  cancel: {
-    marginTop: 16,
-    alignItems: 'center',
-  },
-  cancelText: {
-    color: '#888',
-    fontSize: 14,
+    fontFamily: fonts.heading,
+    fontSize: 32,
+    color: colors.ink,
   },
 });

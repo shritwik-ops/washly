@@ -1,17 +1,8 @@
 import { useState } from 'react';
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { Screen, Heading, Body, ErrorText, Button, TextField } from '../../components/ui';
 
 export default function CollegeNotListed() {
   const router = useRouter();
@@ -43,96 +34,44 @@ export default function CollegeNotListed() {
 
   if (submitted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Thanks!</Text>
-        <Text style={styles.subtitle}>
+      <Screen center>
+        <Heading size="xl" style={{ marginBottom: 8 }}>
+          Thanks!
+        </Heading>
+        <Body muted style={{ marginBottom: 32 }}>
           We'll notify you as soon as Washly launches at your college.
-        </Text>
-        <TouchableOpacity style={styles.button} onPress={() => router.back()}>
-          <Text style={styles.buttonText}>Back</Text>
-        </TouchableOpacity>
-      </View>
+        </Body>
+        <Button label="Back" onPress={() => router.back()} />
+      </Screen>
     );
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <Text style={styles.title}>My college isn't listed</Text>
-      <Text style={styles.subtitle}>
+    <Screen center>
+      <Heading size="lg" style={{ marginBottom: 8 }}>
+        My college isn't listed
+      </Heading>
+      <Body muted style={{ marginBottom: 28 }}>
         Let us know and we'll notify you when Washly launches there.
-      </Text>
+      </Body>
 
-      <TextInput
-        style={styles.input}
+      <TextField
         value={collegeName}
         onChangeText={setCollegeName}
         placeholder="College name"
         autoFocus
+        containerStyle={{ marginBottom: 12 }}
       />
-      <TextInput style={styles.input} value={city} onChangeText={setCity} placeholder="City (optional)" />
+      <TextField
+        value={city}
+        onChangeText={setCity}
+        placeholder="City (optional)"
+        containerStyle={{ marginBottom: 16 }}
+      />
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {error ? <ErrorText style={{ marginBottom: 16 }}>{error}</ErrorText> : null}
 
-      <TouchableOpacity
-        style={[styles.button, !canSubmit && styles.buttonDisabled]}
-        onPress={handleSubmit}
-        disabled={!canSubmit}
-      >
-        {submitting ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Notify me</Text>
-        )}
-      </TouchableOpacity>
-    </KeyboardAvoidingView>
+      <Button label="Notify me" onPress={handleSubmit} disabled={!canSubmit} loading={submitting} />
+    </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: '#666',
-    marginBottom: 28,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  error: {
-    color: '#c0392b',
-    marginBottom: 12,
-  },
-  button: {
-    backgroundColor: '#1a73e8',
-    borderRadius: 10,
-    paddingVertical: 14,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonDisabled: {
-    opacity: 0.5,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
