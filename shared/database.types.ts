@@ -473,6 +473,50 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          renews_at: string
+          starts_at: string
+          status: string
+          student_id: string
+          tier: string
+          wash_allowance: number
+          washes_used: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          renews_at: string
+          starts_at?: string
+          status?: string
+          student_id: string
+          tier: string
+          wash_allowance: number
+          washes_used?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          renews_at?: string
+          starts_at?: string
+          status?: string
+          student_id?: string
+          tier?: string
+          wash_allowance?: number
+          washes_used?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscriptions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -483,6 +527,7 @@ export type Database = {
           id: string
           payment_method: string | null
           student_id: string
+          total_amount: number | null
           type: string
           wallet_portion: number | null
         }
@@ -495,6 +540,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           student_id: string
+          total_amount?: number | null
           type: string
           wallet_portion?: number | null
         }
@@ -507,6 +553,7 @@ export type Database = {
           id?: string
           payment_method?: string | null
           student_id?: string
+          total_amount?: number | null
           type?: string
           wallet_portion?: number | null
         }
@@ -640,6 +687,7 @@ export type Database = {
           id: string
           payment_method: string | null
           student_id: string
+          total_amount: number | null
           type: string
           wallet_portion: number | null
         }

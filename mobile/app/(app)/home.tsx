@@ -101,6 +101,13 @@ export default function Home() {
         </View>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <TouchableOpacity
+            onPress={() => router.push('/(app)/wash-history')}
+            style={styles.walletChip}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.walletChipText}>🧺</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
             onPress={() => router.push('/(app)/notifications')}
             style={styles.walletChip}
             activeOpacity={0.85}
