@@ -404,6 +404,51 @@ export type Database = {
         }
         Relationships: []
       }
+      referrals: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          referred_id: string
+          referrer_id: string
+          reward_credited_at: string | null
+          status: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referred_id: string
+          referrer_id: string
+          reward_credited_at?: string | null
+          status?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          referred_id?: string
+          referrer_id?: string
+          reward_credited_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referrals_referred_id_fkey"
+            columns: ["referred_id"]
+            isOneToOne: true
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referrals_referrer_id_fkey"
+            columns: ["referrer_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       students: {
         Row: {
           account_status: string
@@ -419,6 +464,8 @@ export type Database = {
           notify_flash_slots: boolean
           phone: string
           prewash_checklist_count: number
+          referral_code: string | null
+          referred_by: string | null
           roll_number: string | null
           updated_at: string
         }
@@ -436,6 +483,8 @@ export type Database = {
           notify_flash_slots?: boolean
           phone: string
           prewash_checklist_count?: number
+          referral_code?: string | null
+          referred_by?: string | null
           roll_number?: string | null
           updated_at?: string
         }
@@ -453,6 +502,8 @@ export type Database = {
           notify_flash_slots?: boolean
           phone?: string
           prewash_checklist_count?: number
+          referral_code?: string | null
+          referred_by?: string | null
           roll_number?: string | null
           updated_at?: string
         }
@@ -469,6 +520,13 @@ export type Database = {
             columns: ["hostel_id"]
             isOneToOne: false
             referencedRelation: "hostels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "students_referred_by_fkey"
+            columns: ["referred_by"]
+            isOneToOne: false
+            referencedRelation: "students"
             referencedColumns: ["id"]
           },
         ]
@@ -665,6 +723,7 @@ export type Database = {
         }
       }
       expire_overdue_bookings: { Args: never; Returns: undefined }
+      generate_referral_code: { Args: never; Returns: string }
       is_super_admin: { Args: never; Returns: boolean }
       notify_student: {
         Args: {
@@ -698,6 +757,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      resolve_referral_code: { Args: { p_code: string }; Returns: string }
       revert_expired_flash_slots: { Args: never; Returns: undefined }
       run_booking_scheduler: { Args: never; Returns: undefined }
       start_booking: {

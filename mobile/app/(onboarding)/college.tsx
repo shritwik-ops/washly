@@ -15,6 +15,7 @@ export default function CollegePicker() {
   const { session, student, refreshStudent } = useAuth();
 
   const [fullName, setFullName] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [colleges, setColleges] = useState<College[]>([]);
   const [collegesLoading, setCollegesLoading] = useState(true);
   const [collegeFilter, setCollegeFilter] = useState('');
@@ -88,12 +89,38 @@ export default function CollegePicker() {
     if (!canSubmit || !session || !selectedCollege || !selectedHostel) return;
     setError(null);
     setSubmitting(true);
+
+    // 1.8: resolved server-side, not looked up directly -- students'
+    // select policy only exposes a student's own row, so there's no way
+    // for the client to find another student's id by code except through
+    // this narrow RPC. An unrecognized code is a soft "not found" (null),
+    // not an exception, so a typo doesn't block signup.
+    let referredBy: string | null = null;
+    const trimmedCode = referralCode.trim();
+    if (trimmedCode) {
+      const { data: resolvedId, error: resolveError } = await supabase.rpc('resolve_referral_code', {
+        p_code: trimmedCode,
+      });
+      if (resolveError) {
+        setSubmitting(false);
+        setError(resolveError.message);
+        return;
+      }
+      if (!resolvedId) {
+        setSubmitting(false);
+        setError('Referral code not found -- check it and try again, or leave it blank.');
+        return;
+      }
+      referredBy = resolvedId;
+    }
+
     const { error: insertError } = await supabase.from('students').insert({
       id: session.user.id,
       phone: session.user.phone!,
       full_name: fullName.trim() || null,
       college_id: selectedCollege.id,
       hostel_id: selectedHostel.id,
+      referred_by: referredBy,
     });
     setSubmitting(false);
     if (insertError) {
@@ -120,6 +147,14 @@ export default function CollegePicker() {
         value={fullName}
         onChangeText={setFullName}
         placeholder="Full name (optional)"
+        containerStyle={{ marginBottom: 8 }}
+      />
+
+      <TextField
+        value={referralCode}
+        onChangeText={(text) => setReferralCode(text.toUpperCase())}
+        placeholder="Referral code (optional)"
+        autoCapitalize="characters"
         containerStyle={{ marginBottom: 8 }}
       />
 
