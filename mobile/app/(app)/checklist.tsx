@@ -34,10 +34,13 @@ export default function Checklist() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1.4's wallet-first routing (same rule as book.tsx's checkout moment) --
-  // instant wash always owes the full wash_price up front, so this screen
-  // is instant wash's checkout moment, not just the pre-wash gate.
+  // 1.4's wallet-first routing (same rule as book.tsx's checkout moment).
+  // Instant wash owes the full wash_price up front; a slot booking owes
+  // only the remainder beyond the booking_fee already paid at book.tsx time
+  // (1.3: "the booking fee is adjusted against the final wash cost") -- so
+  // this screen is the checkout moment for both, at two different amounts.
   const [washPrice, setWashPrice] = useState<number | null>(null);
+  const [bookingFeeAlreadyPaid, setBookingFeeAlreadyPaid] = useState<number | null>(null);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [useWalletPartial, setUseWalletPartial] = useState(true);
 
@@ -58,7 +61,6 @@ export default function Checklist() {
   }, []);
 
   useEffect(() => {
-    if (mode !== 'instant') return;
     let mounted = true;
     Promise.all([
       supabase
@@ -68,36 +70,56 @@ export default function Checklist() {
         .is('effective_to', null)
         .maybeSingle(),
       supabase.from('wallet_balances').select('balance').maybeSingle(),
-    ]).then(([priceRes, balanceRes]) => {
+      mode === 'booking' && bookingId
+        ? supabase.from('bookings').select('booking_fee').eq('id', bookingId).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]).then(([priceRes, balanceRes, bookingRes]) => {
       if (!mounted) return;
       setWashPrice(priceRes.data?.value ?? 30);
       setWalletBalance(balanceRes.data?.balance ?? 0);
+      if (mode === 'booking') setBookingFeeAlreadyPaid((bookingRes as { data: { booking_fee: number } | null }).data?.booking_fee ?? 0);
     });
     return () => {
       mounted = false;
     };
-  }, [mode]);
+  }, [mode, bookingId]);
+
+  // The actual amount due at this checkout moment -- full price for
+  // instant wash, or just the remainder for a slot booking (never
+  // negative: a booking_fee that already covers wash_price owes nothing
+  // more here, matching start_booking's own `greatest(..., 0)`).
+  const amountDue =
+    washPrice === null
+      ? null
+      : mode === 'instant'
+        ? washPrice
+        : bookingFeeAlreadyPaid !== null
+          ? Math.max(washPrice - bookingFeeAlreadyPaid, 0)
+          : null;
 
   const paymentSelection =
-    mode === 'instant' && washPrice !== null
-      ? resolvePaymentSelection(washPrice, walletBalance, 'upi', useWalletPartial)
-      : null;
+    amountDue !== null ? resolvePaymentSelection(amountDue, walletBalance, 'upi', useWalletPartial) : null;
   const offersWalletChoice =
-    mode === 'instant' && washPrice !== null && (walletBalance ?? 0) > 0 && (walletBalance ?? 0) < washPrice;
+    amountDue !== null && amountDue > 0 && (walletBalance ?? 0) > 0 && (walletBalance ?? 0) < amountDue;
 
   async function handleStart() {
     if (mode === 'instant' && !machineId) return;
     if (mode === 'booking' && !bookingId) return;
+    if (!paymentSelection) return;
     setError(null);
     setSubmitting(true);
     const { error: rpcError } =
       mode === 'instant'
         ? await supabase.rpc('start_instant_wash', {
             p_machine_id: machineId!,
-            p_payment_method: paymentSelection!.method,
-            p_wallet_portion: paymentSelection!.walletPortion ?? null,
+            p_payment_method: paymentSelection.method,
+            p_wallet_portion: paymentSelection.walletPortion ?? undefined,
           })
-        : await supabase.rpc('start_booking', { p_booking_id: bookingId! });
+        : await supabase.rpc('start_booking', {
+            p_booking_id: bookingId!,
+            p_payment_method: (amountDue ?? 0) > 0 ? paymentSelection.method : undefined,
+            p_wallet_portion: (amountDue ?? 0) > 0 ? (paymentSelection.walletPortion ?? undefined) : undefined,
+          });
     if (rpcError) {
       setSubmitting(false);
       setError(rpcError.message);
@@ -112,7 +134,7 @@ export default function Checklist() {
     router.replace('/(app)/home');
   }
 
-  if (threshold === null || (mode === 'instant' && (washPrice === null || walletBalance === null))) {
+  if (threshold === null || amountDue === null || walletBalance === null) {
     return (
       <Screen center>
         <ActivityIndicator color={colors.appBlue} />
@@ -137,10 +159,12 @@ export default function Checklist() {
         <QuickChecklistRow />
       )}
 
-      {mode === 'instant' && washPrice !== null ? (
+      {amountDue !== null && amountDue > 0 ? (
         <Card tint="blue" style={{ marginBottom: 24 }}>
-          <Label style={{ color: colors.appBlue, marginBottom: 6 }}>Wash price</Label>
-          <Text style={styles.slideTitle}>₹{washPrice}</Text>
+          <Label style={{ color: colors.appBlue, marginBottom: 6 }}>
+            {mode === 'instant' ? 'Wash price' : 'Remaining wash cost'}
+          </Label>
+          <Text style={styles.slideTitle}>₹{amountDue}</Text>
           {offersWalletChoice ? (
             <View style={{ marginTop: 14 }}>
               <TouchableOpacity
@@ -150,7 +174,7 @@ export default function Checklist() {
               >
                 <Checkbox checked={useWalletPartial} />
                 <Body style={{ marginLeft: 10, flex: 1 }}>
-                  Use ₹{walletBalance} wallet + ₹{(washPrice - (walletBalance ?? 0)).toFixed(2)} via UPI
+                  Use ₹{walletBalance} wallet + ₹{(amountDue - (walletBalance ?? 0)).toFixed(2)} via UPI
                 </Body>
               </TouchableOpacity>
               <TouchableOpacity
@@ -159,14 +183,19 @@ export default function Checklist() {
                 activeOpacity={0.85}
               >
                 <Checkbox checked={!useWalletPartial} />
-                <Body style={{ marginLeft: 10, flex: 1 }}>Pay full ₹{washPrice} via UPI</Body>
+                <Body style={{ marginLeft: 10, flex: 1 }}>Pay full ₹{amountDue} via UPI</Body>
               </TouchableOpacity>
             </View>
           ) : (
             <Body muted style={{ marginTop: 8 }}>
-              {(walletBalance ?? 0) >= washPrice ? 'Paid from your wallet balance.' : 'Paid via UPI.'}
+              {(walletBalance ?? 0) >= amountDue ? 'Paid from your wallet balance.' : 'Paid via UPI.'}
             </Body>
           )}
+        </Card>
+      ) : mode === 'booking' && amountDue === 0 ? (
+        <Card tint="blue" style={{ marginBottom: 24 }}>
+          <Label style={{ color: colors.appBlue, marginBottom: 6 }}>Wash cost</Label>
+          <Body muted>Fully covered by your booking fee -- nothing more to pay.</Body>
         </Card>
       ) : null}
 

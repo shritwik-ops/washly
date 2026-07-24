@@ -11,3 +11,10 @@ export {
   formatCountdown,
 } from './booking';
 export type { MachineStatus, BookingStatus, FlashSlotStatus } from './booking';
+export { RECHARGE_PRESET_AMOUNTS, resolvePaymentSelection, formatRupees } from './wallet';
+export type {
+  GatewayMethod,
+  PaymentMethod,
+  WalletTransactionType,
+  PaymentSelection,
+} from './wallet';

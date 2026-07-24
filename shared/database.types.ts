@@ -493,6 +493,18 @@ export type Database = {
     }
     Functions: {
       admin_college_id: { Args: never; Returns: string }
+      charge_wallet_and_gateway: {
+        Args: {
+          p_amount: number
+          p_booking_id: string
+          p_description: string
+          p_payment_method: string
+          p_student_id: string
+          p_type: string
+          p_wallet_portion: number
+        }
+        Returns: undefined
+      }
       claim_flash_slot: {
         Args: { p_flash_slot_id: string }
         Returns: {
@@ -520,7 +532,12 @@ export type Database = {
         }
       }
       create_booking: {
-        Args: { p_machine_id: string; p_slot_start: string }
+        Args: {
+          p_machine_id: string
+          p_payment_method: string
+          p_slot_start: string
+          p_wallet_portion?: number
+        }
         Returns: {
           booking_fee: number
           booking_type: string
@@ -547,10 +564,35 @@ export type Database = {
       }
       expire_overdue_bookings: { Args: never; Returns: undefined }
       is_super_admin: { Args: never; Returns: boolean }
+      recharge_wallet: {
+        Args: { p_amount: number; p_payment_method: string }
+        Returns: {
+          amount: number
+          booking_id: string | null
+          created_at: string
+          description: string | null
+          gateway_reference: string | null
+          id: string
+          payment_method: string | null
+          student_id: string
+          type: string
+          wallet_portion: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "wallet_transactions"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       revert_expired_flash_slots: { Args: never; Returns: undefined }
       run_booking_scheduler: { Args: never; Returns: undefined }
       start_booking: {
-        Args: { p_booking_id: string }
+        Args: {
+          p_booking_id: string
+          p_payment_method?: string
+          p_wallet_portion?: number
+        }
         Returns: {
           booking_fee: number
           booking_type: string
@@ -576,7 +618,11 @@ export type Database = {
         }
       }
       start_instant_wash: {
-        Args: { p_machine_id: string }
+        Args: {
+          p_machine_id: string
+          p_payment_method: string
+          p_wallet_portion?: number
+        }
         Returns: {
           booking_fee: number
           booking_type: string

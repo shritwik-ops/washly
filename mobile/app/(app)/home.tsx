@@ -89,12 +89,17 @@ export default function Home() {
         <RefreshControl refreshing={loading} onRefresh={refresh} tintColor={colors.appBlue} />
       }
     >
-      <View style={styles.header}>
-        <Text style={styles.greeting}>{student.full_name ? `Hi, ${student.full_name} 👋` : 'Welcome 👋'}</Text>
-        <Text style={styles.collegeInfo}>
-          {student.college?.name}
-          {student.hostel?.name ? ` · ${student.hostel.name}` : ''}
-        </Text>
+      <View style={[styles.header, styles.headerRow]}>
+        <View>
+          <Text style={styles.greeting}>{student.full_name ? `Hi, ${student.full_name} 👋` : 'Welcome 👋'}</Text>
+          <Text style={styles.collegeInfo}>
+            {student.college?.name}
+            {student.hostel?.name ? ` · ${student.hostel.name}` : ''}
+          </Text>
+        </View>
+        <TouchableOpacity onPress={() => router.push('/(app)/wallet')} style={styles.walletChip} activeOpacity={0.85}>
+          <Text style={styles.walletChipText}>💳 Wallet</Text>
+        </TouchableOpacity>
       </View>
 
       {actionError ? <ErrorText style={{ marginBottom: 16 }}>{actionError}</ErrorText> : null}
@@ -224,6 +229,24 @@ export default function Home() {
 const styles = StyleSheet.create({
   header: {
     marginBottom: 24,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  walletChip: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.pill,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  walletChipText: {
+    fontFamily: fonts.bodySemiBold,
+    fontSize: 13,
+    color: colors.appBlue,
   },
   greeting: {
     fontFamily: fonts.heading,
