@@ -6,6 +6,7 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { useHostelBookingData, type Machine } from '../../hooks/useHostelBookingData';
 import { useNowTick } from '../../hooks/useNowTick';
+import { useUnreadNotificationCount } from '../../hooks/useUnreadNotificationCount';
 import { Screen, Heading, Body, Label, ErrorText, Button, Card, StatusPill, type PillTone } from '../../components/ui';
 import { colors, fonts, radii, spacing } from '../../constants/theme';
 
@@ -29,6 +30,7 @@ export default function Home() {
     student?.hostel_id,
     student?.id
   );
+  const unreadCount = useUnreadNotificationCount(student?.id);
 
   const myBookingMachine = useMemo(
     () => machines.find((m) => m.id === myBooking?.machine_id) ?? null,
@@ -97,9 +99,18 @@ export default function Home() {
             {student.hostel?.name ? ` · ${student.hostel.name}` : ''}
           </Text>
         </View>
-        <TouchableOpacity onPress={() => router.push('/(app)/wallet')} style={styles.walletChip} activeOpacity={0.85}>
-          <Text style={styles.walletChipText}>💳 Wallet</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            onPress={() => router.push('/(app)/notifications')}
+            style={styles.walletChip}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.walletChipText}>🔔{unreadCount > 0 ? ` ${unreadCount}` : ''}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push('/(app)/wallet')} style={styles.walletChip} activeOpacity={0.85}>
+            <Text style={styles.walletChipText}>💳 Wallet</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {actionError ? <ErrorText style={{ marginBottom: 16 }}>{actionError}</ErrorText> : null}

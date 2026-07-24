@@ -326,6 +326,54 @@ export type Database = {
           },
         ]
       }
+      notifications_log: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          read_at: string | null
+          related_booking_id: string | null
+          student_id: string
+          title: string
+          type: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          related_booking_id?: string | null
+          student_id: string
+          title: string
+          type: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          read_at?: string | null
+          related_booking_id?: string | null
+          student_id?: string
+          title?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_log_related_booking_id_fkey"
+            columns: ["related_booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_log_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pricing_config: {
         Row: {
           created_at: string
@@ -368,6 +416,7 @@ export type Database = {
           id_rejection_reason: string | null
           id_verification_status: string
           no_show_count: number
+          notify_flash_slots: boolean
           phone: string
           prewash_checklist_count: number
           roll_number: string | null
@@ -384,6 +433,7 @@ export type Database = {
           id_rejection_reason?: string | null
           id_verification_status?: string
           no_show_count?: number
+          notify_flash_slots?: boolean
           phone: string
           prewash_checklist_count?: number
           roll_number?: string | null
@@ -400,6 +450,7 @@ export type Database = {
           id_rejection_reason?: string | null
           id_verification_status?: string
           no_show_count?: number
+          notify_flash_slots?: boolean
           phone?: string
           prewash_checklist_count?: number
           roll_number?: string | null
@@ -534,6 +585,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      complete_finished_washes: { Args: never; Returns: undefined }
       create_booking: {
         Args: {
           p_machine_id: string
@@ -567,6 +619,16 @@ export type Database = {
       }
       expire_overdue_bookings: { Args: never; Returns: undefined }
       is_super_admin: { Args: never; Returns: boolean }
+      notify_student: {
+        Args: {
+          p_body: string
+          p_related_booking_id?: string
+          p_student_id: string
+          p_title: string
+          p_type: string
+        }
+        Returns: undefined
+      }
       recharge_wallet: {
         Args: { p_amount: number; p_payment_method: string }
         Returns: {
