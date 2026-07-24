@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { resolvePaymentSelection } from '@washly/shared';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
-import { Screen, Heading, Body, ErrorText, Button, Card, Checkbox } from '../../components/ui';
+import { Screen, Heading, Body, Label, ErrorText, Button, Card, Checkbox } from '../../components/ui';
 import { colors, fonts, radii } from '../../constants/theme';
 
 // Story 1.11: exactly these 4 steps, one line each -- not a place to add
@@ -33,6 +34,13 @@ export default function Checklist() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // 1.4's wallet-first routing (same rule as book.tsx's checkout moment) --
+  // instant wash always owes the full wash_price up front, so this screen
+  // is instant wash's checkout moment, not just the pre-wash gate.
+  const [washPrice, setWashPrice] = useState<number | null>(null);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [useWalletPartial, setUseWalletPartial] = useState(true);
+
   useEffect(() => {
     let mounted = true;
     supabase
@@ -49,6 +57,34 @@ export default function Checklist() {
     };
   }, []);
 
+  useEffect(() => {
+    if (mode !== 'instant') return;
+    let mounted = true;
+    Promise.all([
+      supabase
+        .from('pricing_config')
+        .select('value')
+        .eq('key', 'wash_price')
+        .is('effective_to', null)
+        .maybeSingle(),
+      supabase.from('wallet_balances').select('balance').maybeSingle(),
+    ]).then(([priceRes, balanceRes]) => {
+      if (!mounted) return;
+      setWashPrice(priceRes.data?.value ?? 30);
+      setWalletBalance(balanceRes.data?.balance ?? 0);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [mode]);
+
+  const paymentSelection =
+    mode === 'instant' && washPrice !== null
+      ? resolvePaymentSelection(washPrice, walletBalance, 'upi', useWalletPartial)
+      : null;
+  const offersWalletChoice =
+    mode === 'instant' && washPrice !== null && (walletBalance ?? 0) > 0 && (walletBalance ?? 0) < washPrice;
+
   async function handleStart() {
     if (mode === 'instant' && !machineId) return;
     if (mode === 'booking' && !bookingId) return;
@@ -56,7 +92,11 @@ export default function Checklist() {
     setSubmitting(true);
     const { error: rpcError } =
       mode === 'instant'
-        ? await supabase.rpc('start_instant_wash', { p_machine_id: machineId! })
+        ? await supabase.rpc('start_instant_wash', {
+            p_machine_id: machineId!,
+            p_payment_method: paymentSelection!.method,
+            p_wallet_portion: paymentSelection!.walletPortion ?? null,
+          })
         : await supabase.rpc('start_booking', { p_booking_id: bookingId! });
     if (rpcError) {
       setSubmitting(false);
@@ -72,7 +112,7 @@ export default function Checklist() {
     router.replace('/(app)/home');
   }
 
-  if (threshold === null) {
+  if (threshold === null || (mode === 'instant' && (washPrice === null || walletBalance === null))) {
     return (
       <Screen center>
         <ActivityIndicator color={colors.appBlue} />
@@ -96,6 +136,39 @@ export default function Checklist() {
       ) : (
         <QuickChecklistRow />
       )}
+
+      {mode === 'instant' && washPrice !== null ? (
+        <Card tint="blue" style={{ marginBottom: 24 }}>
+          <Label style={{ color: colors.appBlue, marginBottom: 6 }}>Wash price</Label>
+          <Text style={styles.slideTitle}>₹{washPrice}</Text>
+          {offersWalletChoice ? (
+            <View style={{ marginTop: 14 }}>
+              <TouchableOpacity
+                style={styles.paymentOption}
+                onPress={() => setUseWalletPartial(true)}
+                activeOpacity={0.85}
+              >
+                <Checkbox checked={useWalletPartial} />
+                <Body style={{ marginLeft: 10, flex: 1 }}>
+                  Use ₹{walletBalance} wallet + ₹{(washPrice - (walletBalance ?? 0)).toFixed(2)} via UPI
+                </Body>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.paymentOption}
+                onPress={() => setUseWalletPartial(false)}
+                activeOpacity={0.85}
+              >
+                <Checkbox checked={!useWalletPartial} />
+                <Body style={{ marginLeft: 10, flex: 1 }}>Pay full ₹{washPrice} via UPI</Body>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Body muted style={{ marginTop: 8 }}>
+              {(walletBalance ?? 0) >= washPrice ? 'Paid from your wallet balance.' : 'Paid via UPI.'}
+            </Body>
+          )}
+        </Card>
+      ) : null}
 
       <TouchableOpacity
         style={styles.checkboxRow}
@@ -257,5 +330,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 20,
+  },
+  paymentOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
   },
 });
