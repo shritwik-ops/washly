@@ -246,6 +246,12 @@ export default function Home() {
         })
       )}
 
+      <Button
+        label="Support"
+        variant="ghost"
+        onPress={() => router.push('/(app)/support')}
+        style={{ marginTop: 24 }}
+      />
       <Button label="Sign out" variant="dangerGhost" onPress={() => supabase.auth.signOut()} style={styles.signOut} />
     </Screen>
   );

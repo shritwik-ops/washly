@@ -575,6 +575,98 @@ export type Database = {
           },
         ]
       }
+      support_tickets: {
+        Row: {
+          category: string
+          college_id: string
+          created_at: string
+          description: string
+          escalated_to_super_admin: boolean
+          id: string
+          photo_path: string | null
+          routed_to: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          college_id: string
+          created_at?: string
+          description: string
+          escalated_to_super_admin?: boolean
+          id?: string
+          photo_path?: string | null
+          routed_to: string
+          status?: string
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          college_id?: string
+          created_at?: string
+          description?: string
+          escalated_to_super_admin?: boolean
+          id?: string
+          photo_path?: string | null
+          routed_to?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_tickets_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: false
+            referencedRelation: "colleges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "support_tickets_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ticket_replies: {
+        Row: {
+          author_id: string
+          author_type: string
+          body: string
+          created_at: string
+          id: string
+          ticket_id: string
+        }
+        Insert: {
+          author_id: string
+          author_type: string
+          body: string
+          created_at?: string
+          id?: string
+          ticket_id: string
+        }
+        Update: {
+          author_id?: string
+          author_type?: string
+          body?: string
+          created_at?: string
+          id?: string
+          ticket_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ticket_replies_ticket_id_fkey"
+            columns: ["ticket_id"]
+            isOneToOne: false
+            referencedRelation: "support_tickets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wallet_transactions: {
         Row: {
           amount: number
@@ -651,6 +743,23 @@ export type Database = {
       }
     }
     Functions: {
+      add_ticket_reply: {
+        Args: { p_body: string; p_ticket_id: string }
+        Returns: {
+          author_id: string
+          author_type: string
+          body: string
+          created_at: string
+          id: string
+          ticket_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "ticket_replies"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       admin_college_id: { Args: never; Returns: string }
       charge_wallet_and_gateway: {
         Args: {
@@ -718,6 +827,32 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "bookings"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      create_support_ticket: {
+        Args: {
+          p_category: string
+          p_description: string
+          p_photo_path?: string
+        }
+        Returns: {
+          category: string
+          college_id: string
+          created_at: string
+          description: string
+          escalated_to_super_admin: boolean
+          id: string
+          photo_path: string | null
+          routed_to: string
+          status: string
+          student_id: string
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "support_tickets"
           isOneToOne: true
           isSetofReturn: false
         }
