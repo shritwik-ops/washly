@@ -31,8 +31,13 @@ export default function Checklist() {
   const [threshold, setThreshold] = useState<number | null>(null);
   const [stepIndex, setStepIndex] = useState(0);
   const [confirmed, setConfirmed] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // 1.5's remote-start states: idle (not yet tapped) -> waiting (command
+  // sent, no confirmation yet) -> confirmed (machine actually started) or
+  // failed (device didn't respond -- no charge happened, see the
+  // migration's simulate_relay_failure comment; retry just re-runs
+  // handleStart from idle).
+  const [startStage, setStartStage] = useState<'idle' | 'waiting' | 'confirmed' | 'failed'>('idle');
+  const [startError, setStartError] = useState<string | null>(null);
 
   // 1.4's wallet-first routing (same rule as book.tsx's checkout moment).
   // Instant wash owes the full wash_price up front; a slot booking owes
@@ -106,8 +111,8 @@ export default function Checklist() {
     if (mode === 'instant' && !machineId) return;
     if (mode === 'booking' && !bookingId) return;
     if (!paymentSelection) return;
-    setError(null);
-    setSubmitting(true);
+    setStartError(null);
+    setStartStage('waiting');
     const { error: rpcError } =
       mode === 'instant'
         ? await supabase.rpc('start_instant_wash', {
@@ -121,16 +126,20 @@ export default function Checklist() {
             p_wallet_portion: (amountDue ?? 0) > 0 ? (paymentSelection.walletPortion ?? undefined) : undefined,
           });
     if (rpcError) {
-      setSubmitting(false);
-      setError(rpcError.message);
+      // 1.5: the machine didn't confirm -- charge_wallet_and_gateway never
+      // ran (start_booking/start_instant_wash check simulate_relay_failure
+      // before touching payment or booking status), so nothing was charged
+      // and nothing needs undoing. Student can just retry.
+      setStartStage('failed');
+      setStartError(rpcError.message);
       return;
     }
+    setStartStage('confirmed');
     // The count this screen's own carousel/quick-confirm choice was based
     // on just changed server-side (the RPC above incremented it) -- refresh
     // so the next wash's checklist reads the up-to-date value from
     // AuthContext rather than a stale one cached from before this wash.
     await refreshStudent();
-    setSubmitting(false);
     router.replace('/(app)/home');
   }
 
@@ -208,14 +217,35 @@ export default function Checklist() {
         <Body style={{ marginLeft: 12, flex: 1 }}>{CONFIRM_LABEL}</Body>
       </TouchableOpacity>
 
-      {error ? <ErrorText style={{ marginBottom: 12 }}>{error}</ErrorText> : null}
+      {startStage === 'waiting' ? (
+        <Card tint="blue" style={{ alignItems: 'center' }}>
+          <ActivityIndicator color={colors.appBlue} style={{ marginBottom: 10 }} />
+          <Body>Waiting for the machine to confirm...</Body>
+        </Card>
+      ) : null}
 
-      <Button label="Start wash" onPress={handleStart} disabled={!confirmed} loading={submitting} />
+      {startStage === 'failed' ? (
+        <View style={{ marginBottom: 4 }}>
+          <ErrorText style={{ marginBottom: 4 }}>
+            {startError ?? 'Machine did not respond.'}
+          </ErrorText>
+          <Body muted style={{ marginBottom: 12 }}>
+            You have not been charged. You can try again, or contact support if this keeps happening.
+          </Body>
+        </View>
+      ) : null}
+
+      <Button
+        label={startStage === 'failed' ? 'Try again' : 'Start wash'}
+        onPress={handleStart}
+        disabled={!confirmed || startStage === 'waiting' || startStage === 'confirmed'}
+        loading={startStage === 'waiting'}
+      />
       <Button
         label="Cancel"
         variant="ghost"
         onPress={() => router.back()}
-        disabled={submitting}
+        disabled={startStage === 'waiting'}
         style={{ marginTop: 4 }}
       />
     </Screen>

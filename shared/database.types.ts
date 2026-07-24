@@ -289,6 +289,7 @@ export type Database = {
           hostel_id: string
           id: string
           label: string
+          simulate_relay_failure: boolean
           status: string
           status_updated_at: string
           updated_at: string
@@ -299,6 +300,7 @@ export type Database = {
           hostel_id: string
           id?: string
           label: string
+          simulate_relay_failure?: boolean
           status?: string
           status_updated_at?: string
           updated_at?: string
@@ -309,6 +311,7 @@ export type Database = {
           hostel_id?: string
           id?: string
           label?: string
+          simulate_relay_failure?: boolean
           status?: string
           status_updated_at?: string
           updated_at?: string
