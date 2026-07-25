@@ -54,9 +54,9 @@ export default function ReferralScreen() {
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll insetTop={64}>
       <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
-        <Body style={{ color: colors.appBlue }}>← Back</Body>
+        <Body style={{ color: colors.appBlue, fontFamily: fonts.bodyMedium, fontSize: 15 }}>← Back</Body>
       </TouchableOpacity>
 
       <Heading size="xl" style={{ marginBottom: 24 }}>
@@ -66,23 +66,24 @@ export default function ReferralScreen() {
       <Card tint="lime">
         <Label style={{ marginBottom: 6 }}>Your referral code</Label>
         <Text style={styles.code}>{code || '...'}</Text>
-        <Body muted style={{ marginTop: 10, marginBottom: 16 }}>
+        <Body style={{ marginTop: 10, marginBottom: 16, color: 'rgba(20,33,10,0.75)' }}>
           Share your code -- when a friend signs up and completes their first paid wash, you both
           win.
         </Body>
         <Button label="Share code" onPress={handleShare} disabled={!code} />
       </Card>
 
-      <Label style={{ marginTop: 8, marginBottom: 12 }}>Your referrals</Label>
+      <Label style={{ marginTop: 4, marginBottom: 12 }}>Your referrals</Label>
       {loading ? (
         <ActivityIndicator color={colors.appBlue} style={{ marginVertical: 12 }} />
       ) : referrals.length === 0 ? (
         <Body muted>Nobody's joined with your code yet.</Body>
       ) : (
-        referrals.map((referral) => {
+        referrals.map((referral, i) => {
           const info = STATUS_INFO[referral.status] ?? { label: referral.status, tone: 'neutral' as PillTone };
+          const isLast = i === referrals.length - 1;
           return (
-            <View key={referral.id} style={styles.row}>
+            <View key={referral.id} style={[styles.row, isLast && styles.rowLast]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{referral.referred?.full_name || referral.referred?.phone}</Text>
                 <Body muted style={styles.rowDate}>
@@ -112,6 +113,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
   },
   rowTitle: {
     fontFamily: fonts.bodySemiBold,

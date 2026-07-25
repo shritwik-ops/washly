@@ -91,16 +91,16 @@ export default function Wallet() {
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll insetTop={64}>
       <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
-        <Body style={{ color: colors.appBlue }}>← Back</Body>
+        <Body style={{ color: colors.appBlue, fontFamily: fonts.bodyMedium, fontSize: 15 }}>← Back</Body>
       </TouchableOpacity>
 
       <Heading size="xl" style={{ marginBottom: 24 }}>
         Wallet
       </Heading>
 
-      <Card tint="blue">
+      <Card tint="blue" style={{ marginBottom: 24 }}>
         <Label style={{ color: colors.appBlue, marginBottom: 6 }}>Balance</Label>
         <Text style={styles.balanceValue}>{balance === null ? '…' : formatRupees(balance)}</Text>
       </Card>
@@ -164,8 +164,8 @@ export default function Wallet() {
       ) : transactions.length === 0 ? (
         <Body muted>No transactions yet.</Body>
       ) : (
-        transactions.map((tx) => (
-          <View key={tx.id} style={styles.txRow}>
+        transactions.map((tx, i) => (
+          <View key={tx.id} style={[styles.txRow, i === transactions.length - 1 && styles.txRowLast]}>
             <View style={{ flex: 1 }}>
               <Text style={styles.txLabel}>{TYPE_LABELS[tx.type] ?? tx.type}</Text>
               <Body muted style={styles.txDescription}>
@@ -247,6 +247,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  txRowLast: {
+    borderBottomWidth: 0,
   },
   txLabel: {
     fontFamily: fonts.bodySemiBold,

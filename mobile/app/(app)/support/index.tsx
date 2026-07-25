@@ -62,9 +62,9 @@ export default function SupportTickets() {
   }, [student?.id, refresh]);
 
   return (
-    <Screen scroll>
+    <Screen scroll insetTop={64}>
       <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
-        <Body style={{ color: colors.appBlue }}>← Back</Body>
+        <Body style={{ color: colors.appBlue, fontFamily: fonts.bodyMedium, fontSize: 15 }}>← Back</Body>
       </TouchableOpacity>
 
       <Heading size="xl" style={{ marginBottom: 24 }}>
@@ -82,12 +82,13 @@ export default function SupportTickets() {
       ) : tickets.length === 0 ? (
         <Body muted>No tickets yet -- raise one if something's wrong.</Body>
       ) : (
-        tickets.map((ticket) => {
+        tickets.map((ticket, i) => {
           const info = STATUS_INFO[ticket.status] ?? { label: ticket.status, tone: 'neutral' as PillTone };
+          const isLast = i === tickets.length - 1;
           return (
             <TouchableOpacity
               key={ticket.id}
-              style={styles.row}
+              style={[styles.row, isLast && styles.rowLast]}
               activeOpacity={0.85}
               onPress={() => router.push({ pathname: '/(app)/support/[id]', params: { id: ticket.id } })}
             >
@@ -116,6 +117,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
   },
   rowTitle: {
     fontFamily: fonts.bodySemiBold,

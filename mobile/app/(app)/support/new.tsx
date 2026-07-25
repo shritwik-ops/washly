@@ -84,9 +84,9 @@ export default function NewTicket() {
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll insetTop={64}>
       <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
-        <Body style={{ color: colors.appBlue }}>← Back</Body>
+        <Body style={{ color: colors.appBlue, fontFamily: fonts.bodyMedium, fontSize: 15 }}>← Back</Body>
       </TouchableOpacity>
 
       <Heading size="xl" style={{ marginBottom: 24 }}>

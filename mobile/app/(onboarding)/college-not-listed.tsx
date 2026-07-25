@@ -38,7 +38,7 @@ export default function CollegeNotListed() {
         <Heading size="xl" style={{ marginBottom: 8 }}>
           Thanks!
         </Heading>
-        <Body muted style={{ marginBottom: 32 }}>
+        <Body muted style={{ marginBottom: 28 }}>
           We'll notify you as soon as Washly launches at your college.
         </Body>
         <Button label="Back" onPress={() => router.back()} />
@@ -51,7 +51,7 @@ export default function CollegeNotListed() {
       <Heading size="lg" style={{ marginBottom: 8 }}>
         My college isn't listed
       </Heading>
-      <Body muted style={{ marginBottom: 28 }}>
+      <Body muted style={{ marginBottom: 24 }}>
         Let us know and we'll notify you when Washly launches there.
       </Body>
 
@@ -60,7 +60,7 @@ export default function CollegeNotListed() {
         onChangeText={setCollegeName}
         placeholder="College name"
         autoFocus
-        containerStyle={{ marginBottom: 12 }}
+        containerStyle={{ marginBottom: 8 }}
       />
       <TextField
         value={city}

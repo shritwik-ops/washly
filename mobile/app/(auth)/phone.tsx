@@ -33,7 +33,7 @@ export default function PhoneEntry() {
       <Heading size="xl" style={{ marginBottom: 8 }}>
         Welcome to Washly
       </Heading>
-      <Body muted style={{ marginBottom: 32 }}>
+      <Body muted style={{ marginBottom: 24 }}>
         Enter your phone number to get started
       </Body>
 
@@ -45,7 +45,7 @@ export default function PhoneEntry() {
         keyboardType="number-pad"
         maxLength={10}
         autoFocus
-        containerStyle={{ marginBottom: 16 }}
+        containerStyle={{ marginBottom: 20 }}
       />
 
       {error ? <ErrorText style={{ marginBottom: 16 }}>{error}</ErrorText> : null}

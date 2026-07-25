@@ -158,7 +158,7 @@ export default function Checklist() {
       <Heading size="lg" style={{ marginBottom: 8 }}>
         Before you start
       </Heading>
-      <Body muted style={{ marginBottom: 24 }}>
+      <Body muted style={{ marginBottom: 20 }}>
         {machineLabel ? `Quick check for ${machineLabel}.` : 'Quick check before washing.'}
       </Body>
 

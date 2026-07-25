@@ -71,9 +71,9 @@ export default function WashHistory() {
   }, [subscription]);
 
   return (
-    <Screen scroll>
+    <Screen scroll insetTop={64}>
       <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
-        <Body style={{ color: colors.appBlue }}>← Back</Body>
+        <Body style={{ color: colors.appBlue, fontFamily: fonts.bodyMedium, fontSize: 15 }}>← Back</Body>
       </TouchableOpacity>
 
       <Heading size="xl" style={{ marginBottom: 24 }}>
@@ -81,7 +81,7 @@ export default function WashHistory() {
       </Heading>
 
       {subscription ? (
-        <Card tint="blue">
+        <Card tint="blue" style={{ marginBottom: 24 }}>
           <Label style={{ color: colors.appBlue, marginBottom: 6 }}>Subscription -- {subscription.tier}</Label>
           <Text style={styles.subscriptionValue}>
             {subscription.washes_used} of {subscription.wash_allowance} washes used this month
@@ -91,19 +91,20 @@ export default function WashHistory() {
           </Body>
         </Card>
       ) : (
-        <Card>
+        <Card style={{ marginBottom: 24 }}>
           <Label style={{ marginBottom: 6 }}>Subscription</Label>
           <Body muted>No active subscription -- check back once subscription plans launch.</Body>
         </Card>
       )}
 
-      <Label style={{ marginTop: 8, marginBottom: 12 }}>Past washes</Label>
+      <Label style={{ marginBottom: 12 }}>Past washes</Label>
       {loading ? (
         <ActivityIndicator color={colors.appBlue} style={{ marginVertical: 12 }} />
       ) : bookings.length === 0 ? (
         <Body muted>No completed washes yet.</Body>
       ) : (
-        bookings.map((booking) => {
+        bookings.map((booking, i) => {
+          const isLast = i === bookings.length - 1;
           const transactions = transactionsByBooking[booking.id] ?? [];
           // total_amount is the actual amount charged (wallet + gateway);
           // amount alone is only a wallet-balance delta and reads as ₹0 for
@@ -121,7 +122,7 @@ export default function WashHistory() {
                 ? 'Wallet + UPI'
                 : (PAYMENT_SOURCE_LABEL[methods[0]!] ?? methods[0]);
           return (
-            <View key={booking.id} style={styles.row}>
+            <View key={booking.id} style={[styles.row, isLast && styles.rowLast]}>
               <View style={{ flex: 1 }}>
                 <Text style={styles.rowTitle}>{booking.machine?.label ?? 'Machine'}</Text>
                 <Body muted style={styles.rowDate}>
@@ -154,6 +155,9 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  rowLast: {
+    borderBottomWidth: 0,
   },
   rowTitle: {
     fontFamily: fonts.bodySemiBold,

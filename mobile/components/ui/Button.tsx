@@ -7,7 +7,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import { colors, fonts, radii, spacing } from '../../constants/theme';
+import { colors, fonts, radii } from '../../constants/theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'dangerGhost';
 
@@ -37,7 +37,7 @@ export function Button({ label, onPress, variant = 'primary', disabled, loading,
       {loading ? (
         <ActivityIndicator color={spinnerColor} />
       ) : (
-        <Text style={[styles.label, VARIANT_LABEL_STYLES[variant]]}>{label}</Text>
+        <Text style={[styles.label, VARIANT_TEXT_STYLES[variant], VARIANT_LABEL_STYLES[variant]]}>{label}</Text>
       )}
     </TouchableOpacity>
   );
@@ -67,8 +67,8 @@ const VARIANT_STYLES: Record<Variant, StyleProp<ViewStyle>> = {
     borderColor: colors.appBlue,
     paddingVertical: 14.5,
   },
-  ghost: { backgroundColor: 'transparent', paddingVertical: spacing.sm },
-  dangerGhost: { backgroundColor: 'transparent', paddingVertical: spacing.sm },
+  ghost: { backgroundColor: 'transparent', paddingVertical: 10 },
+  dangerGhost: { backgroundColor: 'transparent', paddingVertical: 10 },
 };
 
 const VARIANT_LABEL_STYLES: Record<Variant, StyleProp<TextStyle>> = {
@@ -76,4 +76,14 @@ const VARIANT_LABEL_STYLES: Record<Variant, StyleProp<TextStyle>> = {
   secondary: { color: colors.appBlue },
   ghost: { color: colors.appBlue },
   dangerGhost: { color: colors.danger },
+};
+
+// Per the design reference: primary/secondary CTAs are 16/15px semi-bold,
+// but ghost/dangerGhost (Cancel, Back, Sign out, Support) are plain 15px
+// medium-weight text links, not scaled-down bold buttons.
+const VARIANT_TEXT_STYLES: Record<Variant, StyleProp<TextStyle>> = {
+  primary: {},
+  secondary: { fontFamily: fonts.bodySemiBold, fontSize: 15 },
+  ghost: { fontFamily: fonts.bodyMedium, fontSize: 15 },
+  dangerGhost: { fontFamily: fonts.bodyMedium, fontSize: 15 },
 };

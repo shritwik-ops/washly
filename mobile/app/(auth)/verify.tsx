@@ -47,7 +47,7 @@ export default function VerifyOtp() {
       <Heading size="xl" style={{ marginBottom: 8 }}>
         Enter the code
       </Heading>
-      <Body muted style={{ marginBottom: 32 }}>
+      <Body muted style={{ marginBottom: 24 }}>
         We sent a 6-digit code to {phone}
       </Body>
 
@@ -59,7 +59,7 @@ export default function VerifyOtp() {
         maxLength={6}
         autoFocus
         style={{ fontSize: 22, letterSpacing: 6 }}
-        containerStyle={{ marginBottom: 16 }}
+        containerStyle={{ marginBottom: 20 }}
       />
 
       {error ? <ErrorText style={{ marginBottom: 16 }}>{error}</ErrorText> : null}
@@ -71,7 +71,7 @@ export default function VerifyOtp() {
         onPress={handleResend}
         variant="ghost"
         disabled={resending}
-        style={{ marginTop: 8 }}
+        style={{ marginTop: 4 }}
       />
     </Screen>
   );

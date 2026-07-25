@@ -200,7 +200,7 @@ export default function CollegePicker() {
 
       {selectedCollege ? (
         <>
-          <Label style={styles.sectionLabel}>Hostel</Label>
+          <Label style={[styles.sectionLabel, { marginTop: 20 }]}>Hostel</Label>
           <TextField
             value={hostelFilter}
             onChangeText={setHostelFilter}
@@ -249,7 +249,7 @@ export default function CollegePicker() {
 
 const styles = StyleSheet.create({
   sectionLabel: {
-    marginTop: 20,
+    marginTop: 12,
     marginBottom: 10,
   },
   spinner: {

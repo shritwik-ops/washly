@@ -111,9 +111,9 @@ export default function TicketDetail() {
   const canReply = ticket.status !== 'resolved';
 
   return (
-    <Screen scroll>
+    <Screen scroll insetTop={64}>
       <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
-        <Body style={{ color: colors.appBlue }}>← Back</Body>
+        <Body style={{ color: colors.appBlue, fontFamily: fonts.bodyMedium, fontSize: 15 }}>← Back</Body>
       </TouchableOpacity>
 
       <View style={styles.headerRow}>
@@ -121,7 +121,7 @@ export default function TicketDetail() {
         <StatusPill label={info.label} tone={info.tone} />
       </View>
 
-      <Card>
+      <Card style={{ marginBottom: 24 }}>
         <Body>{ticket.description}</Body>
         {photoUrl ? <Image source={{ uri: photoUrl }} style={styles.photo} /> : null}
         <Body muted style={{ marginTop: 12 }}>

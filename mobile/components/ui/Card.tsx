@@ -8,8 +8,10 @@ interface CardProps {
   tint?: 'surface' | 'lime' | 'blue';
 }
 
+// Per the design reference: only plain white cards carry the drop shadow --
+// tinted (blue/lime) cards are flat with just their border, never both.
 const TINT_STYLES = {
-  surface: { backgroundColor: colors.surface },
+  surface: { backgroundColor: colors.surface, ...shadow.card },
   lime: { backgroundColor: '#F5FEDC', borderWidth: 1, borderColor: colors.electricLimeDark },
   blue: { backgroundColor: colors.appBlueTint, borderWidth: 1, borderColor: colors.appBlue },
 };
@@ -23,6 +25,5 @@ const styles = StyleSheet.create({
     borderRadius: radii.lg,
     padding: spacing.xxl,
     marginBottom: spacing.xl,
-    ...shadow.card,
   },
 });

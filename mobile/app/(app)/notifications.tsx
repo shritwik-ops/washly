@@ -72,9 +72,9 @@ export default function Notifications() {
   }
 
   return (
-    <Screen scroll>
+    <Screen scroll insetTop={64}>
       <TouchableOpacity onPress={() => router.back()} style={{ marginBottom: 20 }}>
-        <Body style={{ color: colors.appBlue }}>← Back</Body>
+        <Body style={{ color: colors.appBlue, fontFamily: fonts.bodyMedium, fontSize: 15 }}>← Back</Body>
       </TouchableOpacity>
 
       <Heading size="xl" style={{ marginBottom: 24 }}>
@@ -99,10 +99,14 @@ export default function Notifications() {
       ) : notifications.length === 0 ? (
         <Body muted>Nothing yet -- wash, flash slot, and ticket updates will show up here.</Body>
       ) : (
-        notifications.map((n) => (
+        notifications.map((n, i) => (
           <TouchableOpacity
             key={n.id}
-            style={[styles.notifRow, !n.read_at && styles.notifRowUnread]}
+            style={[
+              styles.notifRow,
+              !n.read_at && styles.notifRowUnread,
+              n.read_at && i === notifications.length - 1 && styles.notifRowLast,
+            ]}
             onPress={() => markRead(n)}
             activeOpacity={0.85}
           >
@@ -170,12 +174,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
+  notifRowLast: {
+    borderBottomWidth: 0,
+  },
   notifRowUnread: {
     backgroundColor: colors.appBlueTint,
     marginHorizontal: -16,
     paddingHorizontal: 16,
     borderRadius: radii.md,
     borderBottomWidth: 0,
+    marginBottom: 2,
   },
   notifIcon: {
     fontSize: 20,
