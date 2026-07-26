@@ -53,13 +53,13 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // A session exists -- but only a provisioned admin_users row makes this
-  // an admin session. RLS on admin_users ("id = auth.uid() or
+  // A session exists -- but only a provisioned, active admin_users row
+  // makes this an admin session. RLS on admin_users ("id = auth.uid() or
   // is_super_admin()") already lets any authenticated caller see their
   // own row if one exists, so this needs no special privileges to check.
   const { data: adminRow } = await supabase
     .from("admin_users")
-    .select("id")
+    .select("id, is_active")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -69,6 +69,15 @@ export async function updateSession(request: NextRequest) {
     url.pathname = "/login";
     url.search = "";
     url.searchParams.set("message", "This account doesn't have admin access.");
+    return NextResponse.redirect(url);
+  }
+
+  if (!adminRow.is_active) {
+    await supabase.auth.signOut();
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set("message", "Your admin access has been deactivated.");
     return NextResponse.redirect(url);
   }
 

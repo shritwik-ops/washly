@@ -82,6 +82,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_active: boolean
           role: string
         }
         Insert: {
@@ -90,6 +91,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          is_active?: boolean
           role: string
         }
         Update: {
@@ -98,6 +100,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_active?: boolean
           role?: string
         }
         Relationships: [
@@ -175,6 +178,50 @@ export type Database = {
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      college_data_visibility: {
+        Row: {
+          college_id: string
+          created_at: string
+          id: string
+          machine_status_visible: boolean
+          revenue_visible: boolean
+          student_roster_visible: boolean
+          support_tickets_visible: boolean
+          updated_at: string
+          wash_volume_visible: boolean
+        }
+        Insert: {
+          college_id: string
+          created_at?: string
+          id?: string
+          machine_status_visible?: boolean
+          revenue_visible?: boolean
+          student_roster_visible?: boolean
+          support_tickets_visible?: boolean
+          updated_at?: string
+          wash_volume_visible?: boolean
+        }
+        Update: {
+          college_id?: string
+          created_at?: string
+          id?: string
+          machine_status_visible?: boolean
+          revenue_visible?: boolean
+          student_roster_visible?: boolean
+          support_tickets_visible?: boolean
+          updated_at?: string
+          wash_volume_visible?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "college_data_visibility_college_id_fkey"
+            columns: ["college_id"]
+            isOneToOne: true
+            referencedRelation: "colleges"
             referencedColumns: ["id"]
           },
         ]
@@ -840,6 +887,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      college_data_visible: {
+        Args: { p_category: string; p_college_id: string }
+        Returns: boolean
       }
       complete_finished_washes: { Args: never; Returns: undefined }
       create_booking: {
