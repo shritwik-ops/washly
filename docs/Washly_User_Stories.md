@@ -116,7 +116,7 @@ As a student, I want a quick reminder to actually load my clothes and detergent 
 As a college admin, I want an operational overview of machines and usage at my hostel, so that I can monitor things at a glance without seeing commercial/financial details that aren't mine to manage.
 - Machine count, live status breakdown (free/in-use/maintenance)
 - Daily/weekly/monthly wash **volume** (counts, not currency figures)
-- No revenue, pricing, or payout figures shown here — that stays on the statement in 2.5 and within Super Admin only
+- Revenue, pricing, and payout figures are hidden by default (see 3.10) — Super Admin can enable visibility per college.
 
 **2.2 — Student roster & ID review**
 As a college admin, I want to see verified students and review their uploaded college IDs, so that I can confirm they're legitimately affiliated with my hostel.
@@ -216,3 +216,15 @@ As the super admin, I want fine-grained roles for anyone with admin access, so t
 - Only `super_admin` can create/edit/deactivate other admin_users records
 - Every admin action (approve ID, edit pricing, resolve ticket, send notification) gets an audit log entry: which admin, which role, what action, timestamp
 - Admin login is separate from student auth — needs its own `admin_users` table/session, not reusing the student phone-OTP flow
+
+**3.10 — Per-college data visibility configuration**
+As the super admin, I want to control which data categories each college's admins can see, so I can tailor transparency on a college-by-college basis.
+- Setting is scoped per college, not per individual admin — every college_admin at a given college shares the same visibility configuration
+- Toggleable categories (default = current hardcoded behavior, so nothing changes for existing colleges until a super_admin actively changes it):
+  - Machine status / live view (2.1) — default: on
+  - Wash volume counts (2.1) — default: on
+  - Revenue / pricing / payout figures (2.1, 2.3 statement, 2.5 statement) — default: off
+  - Student roster & ID review (2.2) — default: on
+  - Support ticket queue (2.4) — default: on
+- Enforced via RLS (same pattern as 3.9) — not just hidden UI
+- Changing a toggle takes effect immediately, platform-wide, for that college — no effective-dating needed
