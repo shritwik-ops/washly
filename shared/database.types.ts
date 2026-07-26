@@ -34,6 +34,47 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_action_log: {
+        Row: {
+          action: string
+          admin_id: string | null
+          created_at: string
+          detail: Json | null
+          id: number
+          role: string
+          target_id: string | null
+          target_table: string | null
+        }
+        Insert: {
+          action: string
+          admin_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          id?: never
+          role: string
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string | null
+          created_at?: string
+          detail?: Json | null
+          id?: never
+          role?: string
+          target_id?: string | null
+          target_table?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_action_log_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "admin_users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_users: {
         Row: {
           college_id: string | null
@@ -761,6 +802,7 @@ export type Database = {
         }
       }
       admin_college_id: { Args: never; Returns: string }
+      admin_role: { Args: never; Returns: string }
       charge_wallet_and_gateway: {
         Args: {
           p_amount: number
@@ -859,7 +901,20 @@ export type Database = {
       }
       expire_overdue_bookings: { Args: never; Returns: undefined }
       generate_referral_code: { Args: never; Returns: string }
+      is_finance_admin: { Args: never; Returns: boolean }
+      is_operations_admin: { Args: never; Returns: boolean }
+      is_platform_admin: { Args: never; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
+      is_support_admin: { Args: never; Returns: boolean }
+      log_admin_action: {
+        Args: {
+          p_action: string
+          p_detail?: Json
+          p_target_id?: string
+          p_target_table?: string
+        }
+        Returns: undefined
+      }
       notify_student: {
         Args: {
           p_body: string
